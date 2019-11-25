@@ -98,13 +98,12 @@ class App extends Component {
         longitudeDelta: 0.4,
       },
     });
-    await this._mapView.animateToCoordinate(
-      {
-        latitude: latitude,
-        longitude: longitude,
-      },
-      1000,
-    );
+    await this._mapView.animateCamera({
+      center: {latitude: latitude, longitude: longitude},
+      pitch: 4,
+      heading: 4,
+      zoom: 10,
+    });
   };
 
   customButton = ({item, index}) => {
