@@ -15,7 +15,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   boxes: {
-    height: 200,
+    height: 120,
   },
   box: {
     flex: 1,
@@ -37,8 +37,8 @@ const styles = StyleSheet.create({
   },
   boxImage: {
     borderRadius: 6,
-    width: 100,
-    height: 100,
+    width: 80,
+    height: 80,
     resizeMode: 'cover',
     marginRight: 10,
   },
@@ -55,8 +55,12 @@ const styles = StyleSheet.create({
     height: 60,
     borderRadius: 10,
     resizeMode: 'cover',
-    borderWidth: 4,
+    borderWidth: 2,
     borderColor: '#000000',
+    transform: [{scale: 0.6}],
+  },
+  markerImageActive: {
+    transform: [{scale: 1}],
   },
 });
 

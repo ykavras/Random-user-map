@@ -11,27 +11,68 @@ import styles from './styles';
 import MapView, {Marker} from 'react-native-maps';
 import Carousel from 'react-native-snap-carousel';
 const {width} = Dimensions.get('window');
+
 class App extends Component {
   state = {
-    data: [],
+    data: [
+      {
+        name: 'Ankara',
+        picture:
+          'https://lh5.googleusercontent.com/p/AF1QipNauJyK25obNzldQxJvpJyNJS3Cf8XycMsmHZUs=w408-h271-k-no',
+        coordinate: {
+          latitude: 39.9032923,
+          longitude: 32.6226817,
+        },
+      },
+      {
+        name: 'İstanbul',
+        picture:
+          'https://lh5.googleusercontent.com/p/AF1QipPvCvolnCFPJWeBMCIH-XzRbd6LMAsHbzB06cSV=w408-h407-k-no',
+        coordinate: {
+          latitude: 41.0049823,
+          longitude: 28.7319994,
+        },
+      },
+      {
+        name: 'Konya',
+        picture:
+          'https://lh5.googleusercontent.com/p/AF1QipOKAOUDrztQgkF0dDvLF-4R0May3Uq90Rtd4HbK=w408-h305-k-no',
+        coordinate: {
+          latitude: 37.8784235,
+          longitude: 32.3663993,
+        },
+      },
+      {
+        name: 'Antalya',
+        picture:
+          'https://lh5.googleusercontent.com/p/AF1QipOSMDhIj5lFP6l2jvbm3ROm6kCOYqAmBMHvQ7x8=w426-h240-k-no',
+        coordinate: {
+          latitude: 36.8978553,
+          longitude: 30.5780217,
+        },
+      },
+      {
+        name: 'Zonguldak',
+        picture:
+          'https://lh5.googleusercontent.com/p/AF1QipMQWaJ4Hxvs4dZqKx6xRZgFyC5IY1n81mLqjCwP=w408-h494-k-no',
+        coordinate: {
+          latitude: 41.4590028,
+          longitude: 31.7301209,
+        },
+      },
+    ],
+    currentMap: undefined,
     region: {},
   };
 
   componentDidMount = async () => {
     this.mapCarousel = {};
-    const data = await fetch('https://randomuser.me/api/?nat=tr&results=10')
-      .then(response => response.json())
-      .then(responseJson => {
-        return responseJson.results;
-      })
-      .catch(error => {
-        console.error(error);
-      });
+    this._mapView = MapView;
+    const {data} = this.state;
     await this.setState({
-      data,
       region: {
-        latitude: parseFloat(data[0].location.coordinates.latitude),
-        longitude: parseFloat(data[0].location.coordinates.longitude),
+        latitude: data[0].coordinate.latitude,
+        longitude: data[0].coordinate.longitude,
         latitudeDelta: 0.4,
         longitudeDelta: 0.4,
       },
@@ -39,25 +80,32 @@ class App extends Component {
   };
 
   changeIndex = async currentIndex => {
-    console.log(currentIndex);
     const {data} = this.state;
     await this.mapCarousel.snapToItem(currentIndex);
     await this.onRegionChange(
-      data[currentIndex].location.coordinates.latitude,
-      data[currentIndex].location.coordinates.longitude,
+      data[currentIndex].coordinate.latitude,
+      data[currentIndex].coordinate.longitude,
     );
+    await this.setState({currentMap: currentIndex});
   };
 
-  onRegionChange(latitude, longitude) {
-    this.setState({
+  onRegionChange = async (latitude, longitude) => {
+    await this.setState({
       region: {
-        latitude: parseFloat(latitude),
-        longitude: parseFloat(longitude),
+        latitude: latitude,
+        longitude: longitude,
         latitudeDelta: 0.4,
         longitudeDelta: 0.4,
       },
     });
-  }
+    await this._mapView.animateToCoordinate(
+      {
+        latitude: latitude,
+        longitude: longitude,
+      },
+      1000,
+    );
+  };
 
   customButton = ({item, index}) => {
     return (
@@ -65,21 +113,16 @@ class App extends Component {
         onPress={() => this.changeIndex(index)}
         key={`item_${index + item.email}`}
         style={styles.box}>
-        <Image style={styles.boxImage} source={{uri: item.picture.large}} />
+        <Image style={styles.boxImage} source={{uri: item.picture}} />
         <View style={styles.fullName}>
-          <Text style={styles.boxTitle}>
-            {item.name.first} {item.name.last}
-          </Text>
-          <Text style={styles.boxTitle}>
-            {item.location.state} / {item.location.country}
-          </Text>
+          <Text style={styles.boxTitle}>{item.name} / TURKEY</Text>
         </View>
       </TouchableOpacity>
     );
   };
 
   render() {
-    const {data, region} = this.state;
+    const {data, currentMap} = this.state;
     return (
       <View style={styles.wrapper}>
         <StatusBar hidden />
@@ -87,19 +130,32 @@ class App extends Component {
           <>
             <MapView
               style={styles.mapWrapper}
-              region={region}
-              rotateEnabled={false}>
+              ref={mapView => {
+                this._mapView = mapView;
+              }}
+              initialRegion={{
+                latitude: 38.7412482,
+                longitude: 26.1844276,
+                latitudeDelta: 5,
+                longitudeDelta: 5,
+              }}>
               {data.map((item, index) => (
                 <Marker
+                  ref={marker => {
+                    this._mapView = marker;
+                  }}
                   onPress={() => this.changeIndex(index)}
                   key={`map${index}`}
                   coordinate={{
-                    latitude: parseFloat(item.location.coordinates.latitude),
-                    longitude: parseFloat(item.location.coordinates.longitude),
+                    latitude: item.coordinate.latitude,
+                    longitude: item.coordinate.longitude,
                   }}>
                   <Image
-                    source={{uri: item.picture.large}}
-                    style={styles.markerImage}
+                    source={{uri: item.picture}}
+                    style={[
+                      styles.markerImage,
+                      currentMap === index && styles.markerImageActive,
+                    ]}
                   />
                 </Marker>
               ))}
