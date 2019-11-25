@@ -8,7 +8,7 @@ import {
   StatusBar,
 } from 'react-native';
 import styles from './styles';
-import MapView, {Marker, PROVIDER_GOOGLE} from 'react-native-maps';
+import MapView, {Marker} from 'react-native-maps';
 import Carousel from 'react-native-snap-carousel';
 const {width} = Dimensions.get('window');
 class App extends Component {
@@ -32,10 +32,20 @@ class App extends Component {
       region: {
         latitude: parseFloat(data[0].location.coordinates.latitude),
         longitude: parseFloat(data[0].location.coordinates.longitude),
-        latitudeDelta: 0.0922,
-        longitudeDelta: 0.0421,
+        latitudeDelta: 0.4,
+        longitudeDelta: 0.4,
       },
     });
+  };
+
+  changeIndex = async currentIndex => {
+    console.log(currentIndex);
+    const {data} = this.state;
+    await this.mapCarousel.snapToItem(currentIndex);
+    await this.onRegionChange(
+      data[currentIndex].location.coordinates.latitude,
+      data[currentIndex].location.coordinates.longitude,
+    );
   };
 
   onRegionChange(latitude, longitude) {
@@ -43,8 +53,8 @@ class App extends Component {
       region: {
         latitude: parseFloat(latitude),
         longitude: parseFloat(longitude),
-        latitudeDelta: 0.0922,
-        longitudeDelta: 0.0421,
+        latitudeDelta: 0.4,
+        longitudeDelta: 0.4,
       },
     });
   }
@@ -52,12 +62,7 @@ class App extends Component {
   customButton = ({item, index}) => {
     return (
       <TouchableOpacity
-        onPress={() =>
-          this.onRegionChange(
-            item.location.coordinates.latitude,
-            item.location.coordinates.longitude,
-          )
-        }
+        onPress={() => this.changeIndex(index)}
         key={`item_${index + item.email}`}
         style={styles.box}>
         <Image style={styles.boxImage} source={{uri: item.picture.large}} />
@@ -73,15 +78,6 @@ class App extends Component {
     );
   };
 
-  changeIndex = async currentIndex => {
-    const {data} = this.state;
-    await this.mapCarousel.snapToItem(currentIndex);
-    await this.onRegionChange(
-      data[currentIndex].location.coordinates.latitude,
-      data[currentIndex].location.coordinates.longitude,
-    );
-  };
-
   render() {
     const {data, region} = this.state;
     return (
@@ -90,12 +86,9 @@ class App extends Component {
         {data.length > 0 && (
           <>
             <MapView
-              provider={PROVIDER_GOOGLE}
               style={styles.mapWrapper}
               region={region}
-              rotateEnabled={false}
-              maxZoomLevel={2}
-              minZoomLevel={2}>
+              rotateEnabled={false}>
               {data.map((item, index) => (
                 <Marker
                   onPress={() => this.changeIndex(index)}
